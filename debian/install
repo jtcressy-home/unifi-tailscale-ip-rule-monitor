@@ -1,0 +1,2 @@
+lib/systemd/system/tailscale-ip-rule-monitor.service
+usr/sbin/tailscale-ip-rule-monitor

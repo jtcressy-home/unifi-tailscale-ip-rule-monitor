@@ -1,0 +1,14 @@
+Source: unifi-tailscale-ip-rule-monitor
+Section: contrib/utils
+Priority: optional
+Maintainer: Joel Cressy <joel@jtcressy.net>
+Build-Depends: debhelper-compat (= 12)
+Standards-Version: 4.3.0
+Homepage: https://github.com/jtcressy-home/unifi-tailscale-ip-rule-monitor
+#Vcs-Browser: https://github.com/jtcressy-home/unifi-tailscale-ip-rule-monitor
+#Vcs-Git: https://github.com/jtcressy-home/unifi-tailscale-ip-rule-monitor.git
+
+Package: unifi-tailscale-ip-rule-monitor
+Architecture: all
+Depends: ${misc:Depends}
+Description: Unifi IP Rule Monitor for Tailscale
