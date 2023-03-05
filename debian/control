@@ -12,3 +12,4 @@ Package: unifi-tailscale-ip-rule-monitor
 Architecture: all
 Depends: ${misc:Depends}
 Description: Unifi IP Rule Monitor for Tailscale
+  Keeps track of the active default route and informs tailscale with IP Rules
