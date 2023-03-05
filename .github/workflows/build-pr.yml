@@ -1,30 +1,41 @@
-name: Debian Package Build
+name: build-pr
+
 on:
   pull_request:
     branches: [ main ]
 
 jobs:
   build:
-    name: build
     runs-on: ubuntu-latest
-    container:
-      image: debian:latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v2
 
-      - name: Install Dependencies
-        run: |-
-          apt update
-          apt install -y devscripts
+      - name: Extract metadata (tags, labels) for Container Image
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: |
+            notimportant
+          tags: |
+            type=pep440,pattern={{version}}
+            type=ref,event=branch,prefix=0.0.0-
+            type=ref,event=pr,prefix=0.0.0-pr-
+            type=sha,prefix=0.0.0-sha-
 
-      - name: Build
-        run: |-
-          debuild --build=all --no-sign
+      - uses: jiro4989/build-deb-action@v2
+        with:
+          package: unifi-tailscale-ip-rule-monitor
+          package_root: .debpkg
+          maintainer: Joel Cressy
+          version: ${{ steps.meta.outputs.version }}
+          arch: 'all'
+          depends: 'tailscale'
+          desc: |
+            Unifi IP Rule Monitor for Tailscale
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ github.repository_name }}-deb
+          name: debfiles
           path: |
-            *_all.deb
+            **/*.deb
