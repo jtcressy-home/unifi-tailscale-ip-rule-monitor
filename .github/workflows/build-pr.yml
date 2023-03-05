@@ -1,0 +1,30 @@
+name: Debian Package Build
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    container:
+      image: debian:latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install Dependencies
+        run: |-
+          apt update
+          apt install -y devscripts
+
+      - name: Build
+        run: |-
+          debuild --build=all --no-sign
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ github.repository_name }}-deb
+          path: |
+            *_all.deb

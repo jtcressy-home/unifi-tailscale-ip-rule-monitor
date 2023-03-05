@@ -1,0 +1,17 @@
+[Unit]
+Description=Monitors ip rules for better default route discovery by tailscale
+After=network-online.target
+Documentation=https://github.com/jtcressy-home/unifi-tailscale-ip-rule-monitor/
+
+[Service]
+Type=simple
+User=root
+Group=root
+TimeoutStartSec=0
+Restart=on-failure
+RestartSec=30s
+ExecStart=/usr/sbin/tailscale-ip-rule-monitor
+SysLogIdentifier=Diskutilization
+
+[Install]
+WantedBy=multi-user.target

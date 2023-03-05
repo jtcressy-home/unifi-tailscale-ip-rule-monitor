@@ -1,0 +1,5 @@
+unifi-tailscale-ip-rule-monitor (1.0.0) stable; urgency=medium
+
+  * Initial release.
+
+ -- Joel Cressy <joel@jtcressy.net>  Sat, 4 Mar 2023 11:00:00 -0600
