@@ -1,13 +1,19 @@
-name: Debian Package Release
+name: Debian Package Build/Publish/Release
 
 on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
   release:
     types:
       - published
 
+permissions:
+  id-token: write
+
 jobs:
   build:
-    name: release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -20,8 +26,8 @@ jobs:
             notimportant
           tags: |
             type=pep440,pattern={{version}}
-            type=ref,event=branch,prefix=0.0.0-
-            type=ref,event=pr,prefix=0.0.0-pr-
+            type=ref,event=branch,prefix=0.0.0-,suffix=-{{sha}}
+            type=ref,event=pr,prefix=0.0.0-pr-,suffix=-{{sha}}
             type=sha,prefix=0.0.0-sha-
 
       - uses: jiro4989/build-deb-action@v2
@@ -35,14 +41,24 @@ jobs:
           desc: |
             Unifi IP Rule Monitor for Tailscale
 
+      - name: Upload Artifact
+        if: github.event_name != 'release'
+        uses: actions/upload-artifact@v3
+        with:
+          name: debfiles
+          path: |
+            **/*.deb
+
       - name: Get Release Asset
+        if: github.event_name == 'release'
         id: get_release_asset
         run: |-
           echo "asset_path=$(echo ./*_all.deb)" >> $GITHUB_OUTPUT
           echo "asset_name=$(basename ./*_all.deb)" >> $GITHUB_OUTPUT
           echo "asset_content_type=$(file --brief --mime-type ./*_all.deb)" >> $GITHUB_OUTPUT
-
+      
       - name: Upload Release Asset
+        if: github.event_name == 'release'
         id: upload-release-asset
         uses: actions/upload-release-asset@v1
         env:
@@ -52,3 +68,18 @@ jobs:
           asset_path: ${{ steps.get_release_asset.outputs.asset_path }}
           asset_name: ${{ steps.get_release_asset.outputs.asset_name }}
           asset_content_type: ${{ steps.get_release_asset.outputs.asset_content_type }}
+      
+      - name: Auth to GCP for pushing artifacts
+        uses: google-github-actions/auth@v1
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_BUILDS_SERVICE_ACCOUNT }}
+          project_id: ${{ vars.GCP_BUILDS_PROJECT_ID }}
+          create_credentials_file: true
+          export_environment_variables: true
+
+      - name: Push to artifact registry
+        run: |
+          gcloud config set artifacts/repository unifi-os
+          gcloud config set artifacts/location us
+          gcloud artifacts apt upload unifi-os --source=unifi-tailscale-ip-rule-monitor_${{ steps.meta.outputs.version}}_all.deb
